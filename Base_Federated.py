@@ -194,14 +194,14 @@ class FlowerClient(fl.client.NumPyClient):
         return float(loss), len(self.valloader), {"accuracy": float(accuracy)}
 
 trainloaders, valloaders, testloader = load_data()
-#Def Client
-def client_fn(cid: str) -> FlowerClient:
+
+def client_fn(context: Context) -> FlowerClient:
     net = Net().to(DEVICE)
-
-
-    trainloader = trainloaders[int(cid)]
-    valloader = valloaders [int(cid)]
-    return FlowerClient(net, trainloader, valloader)
+    partition_id = context.node_config["partition-id"]
+    num_partitions = context.node_config["num-partitions"]
+    trainloader = trainloaders[int(partition_id)]
+    valloader = valloaders [int(partition_id)]
+    return FlowerClient(net, trainloader, valloader).to_client()
 
 #Create FedAVG strategys
 strategy = fl.server.strategy.FedAvg(
